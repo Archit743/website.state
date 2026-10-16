@@ -4,12 +4,13 @@
 // ──────────────────────────────────────────────
 
 const FIREBASE_CONFIG = {
-  apiKey:            "PASTE_YOUR_API_KEY_HERE",
-  authDomain:        "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:         "PASTE_YOUR_PROJECT_ID",
-  storageBucket:     "PASTE_YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID",
-  appId:             "PASTE_YOUR_APP_ID"
+  apiKey:            "AIzaSyAmGTut8IOU1WjSeyo_wrYSyQiABC5yuoE",
+  authDomain:        "project-f258e.firebaseapp.com",
+  projectId:         "project-f258e",
+  storageBucket:     "project-f258e.firebasestorage.app",
+  messagingSenderId: "411279025889",
+  appId:             "1:411279025889:web:c48e1d3693c9faa5e579a0",
+  measurementId:     "G-3NDFQSGS6L"
 };
 
 // Passkey for team login (change this to your own)

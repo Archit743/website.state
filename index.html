@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pradeep Sales — Order Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+/* ── LOGIN SCREEN ── */
+#loginScreen {
+  position: fixed;
+  inset: 0;
+  background: #f7f6f3;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-card {
+  background: #ffffff;
+  border: 1px solid #e5e2db;
+  border-radius: 16px;
+  padding: 40px 36px 36px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+}
+
+.login-brand {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.login-brand-name {
+  font-family: 'Instrument Serif', serif;
+  font-size: 26px;
+  color: #1a1916;
+  line-height: 1.1;
+}
+
+.login-brand-name em { color: #d4570e; font-style: italic; }
+.login-brand-sub { font-size: 12px; color: #a8a49d; margin-top: 4px; }
+
+.login-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1916;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.login-sub {
+  font-size: 12px;
+  color: #9c9690;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.login-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b6860;
+}
+
+.login-input {
+  background: #f7f6f3;
+  border: 1px solid #d4d0c8;
+  border-radius: 7px;
+  padding: 10px 13px;
+  font-size: 14px;
+  color: #1a1916;
+  font-family: 'Instrument Sans', sans-serif;
+  width: 100%;
+  transition: border-color 0.14s, box-shadow 0.14s;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #d4570e;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(212,87,14,0.08);
+}
+
+.login-input::placeholder { color: #c8c4bc; }
+
+.login-btn {
+  width: 100%;
+  background: #d4570e;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  padding: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  transition: background 0.14s;
+  margin-top: 6px;
+}
+
+.login-btn:hover { background: #c04d0c; }
+.login-btn:disabled { background: #e5b49a; cursor: not-allowed; }
+
+.login-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 12px;
+  color: #dc2626;
+  margin-bottom: 14px;
+  display: none;
+}
+
+.login-divider {
+  height: 1px;
+  background: #e5e2db;
+  margin: 20px 0;
+}
+
+.login-footer {
+  font-size: 11px;
+  color: #a8a49d;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* Spinner */
+.login-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Sidebar logout button */
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: 1px solid #e5e2db;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 12px;
+  color: #9c9690;
+  cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  margin-top: 8px;
+  transition: all 0.14s;
+}
+
+.logout-btn:hover { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-brand-name"><em>Pradeep</em> Sales</div>
+      <div class="login-brand-sub">Order Management System</div>
+    </div>
+
+    <div class="login-title">Enter Passkey</div>
+    <div class="login-sub">Pradeep Sales team access only</div>
+
+    <div class="login-error" id="loginError"></div>
+
+    <div class="login-field">
+      <label class="login-label">Passkey</label>
+      <input type="password" class="login-input" id="loginPassword" placeholder="Enter passkey" autocomplete="off" autofocus>
+    </div>
+
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Unlock →</button>
+
+    <div class="login-divider"></div>
+    <div class="login-footer">
+      Contact Ankur for access.<br>
+      <strong style="color:#6b6860">Pradeep Sales, Prayagraj</strong>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-dot" id="toastDot"></div>
+  <div>
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-body" id="toastBody"></div>
+  </div>
+</div>
+
+<div class="layout" id="appLayout" style="display:none">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-name"><em>Pradeep</em> Sales</div>
+      <div class="brand-sub">Order Management</div>
+    </div>
+    <div class="nav">
+      <div class="nav-section-label">Operations</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="show('dashboard')">
+        <span class="nav-icon">◈</span> Dashboard
+      </div>
+      <div class="nav-item" id="nav-board" onclick="show('board')">
+        <span class="nav-icon">⊞</span> Live Board
+        <span class="nav-count" id="nc-open">0</span>
+      </div>
+      <div class="nav-item" id="nav-orders" onclick="show('orders')">
+        <span class="nav-icon">≡</span> All Orders
+      </div>
+      <div class="nav-section-label" style="margin-top:6px">Tools</div>
+      <div class="nav-item" id="nav-portal" onclick="show('portal')">
+        <span class="nav-icon">⊙</span> Retailer Portal
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">A</div>
+        <div>
+          <div class="user-name">Ankur Gupta</div>
+          <div class="user-role">Admin</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">⎋ Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="pageTitle">Dashboard</div>
+        <div class="topbar-sub" id="pageSub"><span class="live">Live</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-outline btn-sm" onclick="show('portal')">🔗 Retailer Track</button>
+        <button class="btn btn-primary btn-sm" onclick="openNew()">+ New Order</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="view active" id="view-dashboard">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total Orders</div>
+            <div class="stat-num" id="k-total">0</div>
+            <div class="stat-note">All time</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Open Orders</div>
+            <div class="stat-num" id="k-open">0</div>
+            <div class="stat-note">In progress</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Dispatched Today</div>
+            <div class="stat-num" id="k-done">0</div>
+            <div class="stat-note">Completed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">SLA Alerts</div>
+            <div class="stat-num" id="k-sla" style="color:var(--accent)">0</div>
+            <div class="stat-note">Need attention</div>
+          </div>
+        </div>
+
+        <div class="sec-head">
+          <div>
+            <div class="sec-title">Recent Orders</div>
+            <div class="sec-sub">Latest activity</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="show('orders')">View all →</button>
+        </div>
+
+        <div class="table-wrap" id="dashTable">
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">No orders yet</div>
+            <div class="empty-sub">Click <strong>+ New Order</strong> to get started</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LIVE BOARD ── -->
+      <div class="view" id="view-board">
+        <div class="pipeline" id="pipeline"></div>
+      </div>
+
+      <!-- ── ALL ORDERS ── -->
+      <div class="view" id="view-orders">
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <input type="text" placeholder="Search orders, retailers…" id="srch" oninput="renderOrders()">
+          </div>
+          <select class="f-select" id="fStatus" onchange="renderOrders()">
+            <option value="">All Statuses</option>
+            <option value="received">Received</option>
+            <option value="processing">Processing</option>
+            <option value="billing">Billing</option>
+            <option value="dispatched">Dispatched</option>
+          </select>
+          <select class="f-select" id="fPriority" onchange="renderOrders()">
+            <option value="">All Priorities</option>
+            <option value="normal">Normal</option>
+            <option value="urgent">Urgent</option>
+            <option value="critical">Critical</option>
+          </select>
+          <select class="f-select" id="fSource" onchange="renderOrders()">
+            <option value="">All Sources</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="phone">Phone</option>
+            <option value="salesman">Salesman</option>
+            <option value="portal">Portal</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="exportPDF()">↓ PDF</button>
+          <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ CSV</button>
+        </div>
+
+        <div class="table-wrap" id="ordersTable">
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">No orders yet</div>
+            <div class="empty-sub">Click <strong>+ New Order</strong> to get started</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PORTAL ── -->
+      <div class="view" id="view-portal">
+        <div class="portal-wrap">
+          <div style="text-align:center;margin-bottom:24px">
+            <div style="font-family:var(--serif);font-size:22px;margin-bottom:4px"><em>Pradeep</em> Sales</div>
+            <div style="font-size:13px;color:var(--text3)">Track your spare parts order</div>
+          </div>
+          <div class="portal-card">
+            <div style="margin-bottom:16px">
+              <div class="label" style="margin-bottom:6px;font-size:13px">Enter Order ID</div>
+              <div style="display:flex;gap:8px">
+                <input type="text" class="input" id="portalInput" placeholder="e.g. ORD-240901-001" style="font-size:14px">
+                <button class="btn btn-primary" onclick="lookupPortal()">Track →</button>
+              </div>
+              <div style="font-size:11px;color:var(--text3);margin-top:6px">Your Order ID was sent when the order was placed.</div>
+            </div>
+          </div>
+          <div id="portalResult" style="display:none;margin-top:14px">
+            <div class="portal-card" id="portalCard"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- NEW ORDER MODAL -->
+<div class="overlay" id="newModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">New Order</div>
+        <div class="modal-sub" id="newOrderId">Auto-generating ID…</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('newModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field">
+          <label class="label">Order ID</label>
+          <input type="text" class="input" id="f-id" readonly>
+        </div>
+        <div class="field">
+          <label class="label">Date &amp; Time</label>
+          <input type="text" class="input" id="f-time" readonly>
+        </div>
+
+        <div class="section-divider">Retailer</div>
+
+        <div class="field">
+          <label class="label">Retailer Name <span class="req">*</span></label>
+          <input type="text" class="input" id="f-retailer" placeholder="e.g. Sharma Auto Parts">
+        </div>
+        <div class="field">
+          <label class="label">Mobile Number <span class="req">*</span></label>
+          <input type="text" class="input" id="f-mobile" placeholder="+91 XXXXX XXXXX">
+        </div>
+        <div class="field">
+          <label class="label">Area / Route</label>
+          <input type="text" class="input" id="f-area" placeholder="e.g. Phulpur, Naini">
+        </div>
+        <div class="field">
+          <label class="label">Order Source</label>
+          <select class="select" id="f-source">
+            <option value="whatsapp">WhatsApp</option>
+            <option value="phone">Phone Call</option>
+            <option value="salesman">Salesman</option>
+            <option value="portal">Portal</option>
+          </select>
+        </div>
+
+        <div class="section-divider">Order Details</div>
+
+        <div class="field">
+          <label class="label">Salesman</label>
+          <select class="select" id="f-salesman">
+            <option>Amit Sharma</option>
+            <option>Vijay Gupta</option>
+            <option>Rohit Tiwari</option>
+            <option>Deepak Yadav</option>
+            <option>Self / Direct</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">Priority</label>
+          <select class="select" id="f-priority">
+            <option value="normal">Normal  (2 hr SLA)</option>
+            <option value="urgent">Urgent  (30 min SLA)</option>
+            <option value="critical">Critical (15 min SLA)</option>
+          </select>
+        </div>
+
+        <div class="field span2">
+          <label class="label">Remarks</label>
+          <textarea class="textarea" id="f-remarks" placeholder="Part numbers, special instructions…"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('newModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveOrder()">Create Order →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER DETAIL MODAL -->
+<div class="overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="d-id">Order Detail</div>
+        <div class="modal-sub" id="d-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('detailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="d-body"></div>
+  </div>
+</div>
+
+<!-- Firebase v8 CDN -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script src="app.js"></script>
+</body>
+</html>

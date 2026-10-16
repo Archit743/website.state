@@ -1,4 +1,37 @@
 // ──────────────────────────────────────────────
+//  FIREBASE CONFIG — paste your values from
+//  Firebase Console → Project Settings → Web App
+// ──────────────────────────────────────────────
+
+const FIREBASE_CONFIG = {
+  apiKey:            "PASTE_YOUR_API_KEY_HERE",
+  authDomain:        "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
+  projectId:         "PASTE_YOUR_PROJECT_ID",
+  storageBucket:     "PASTE_YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId:             "PASTE_YOUR_APP_ID"
+};
+
+// Passkey for team login (change this to your own)
+const PASSKEY = 'pradeep2024';
+
+let db = null;
+let useFirebase = false;
+
+try {
+  if (FIREBASE_CONFIG.apiKey !== "PASTE_YOUR_API_KEY_HERE") {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    useFirebase = true;
+    console.info('✅ Firebase connected');
+  } else {
+    console.info('⚠ Firebase not configured — running in local (memory) mode');
+  }
+} catch (e) {
+  console.warn('Firebase init failed, falling back to local mode:', e.message);
+}
+
+// ──────────────────────────────────────────────
 //  DATA
 // ──────────────────────────────────────────────
 
@@ -18,6 +51,19 @@ function genId() {
   const d = new Date();
   const s = `${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
   return `ORD-${s}-${String(counter++).padStart(3,'0')}`;
+}
+
+function syncCounter() {
+  const d = new Date();
+  const prefix = `ORD-${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-`;
+  let max = 0;
+  orders.forEach(o => {
+    if (o.id && o.id.startsWith(prefix)) {
+      const num = parseInt(o.id.slice(-3), 10);
+      if (num > max) max = num;
+    }
+  });
+  counter = max + 1;
 }
 
 // ──────────────────────────────────────────────
@@ -278,6 +324,17 @@ function advance(id) {
   const next = STATUSES[si + 1];
   o.status = next.key;
   o.timeline.push({ status: next.key, label: next.label, ts: Date.now(), user });
+
+  if (useFirebase) {
+    db.collection('orders').doc(o.id).update({
+      status: next.key,
+      timeline: o.timeline
+    }).catch(err => {
+      console.error('Firestore update error:', err);
+      toast('Sync Error', 'Status updated locally but failed to sync', '#dc2626');
+    });
+  }
+
   toast('Status Updated', `${o.id} → ${next.label}`, '#1a7a4a');
   closeModal('detailModal');
   renderDash();
@@ -319,6 +376,14 @@ function saveOrder() {
   };
 
   orders.unshift(o);
+
+  if (useFirebase) {
+    db.collection('orders').doc(o.id).set(o).catch(err => {
+      console.error('Firestore write error:', err);
+      toast('Sync Error', 'Order saved locally but failed to sync to cloud', '#dc2626');
+    });
+  }
+
   closeModal('newModal');
   toast('Order Created', `${o.id} — ${retailer}`, '#1a7a4a');
   refreshAll();
@@ -509,10 +574,16 @@ function exportPDF() {
 </html>`;
 
   const w = window.open('', '_blank');
+  if (!w) {
+    alert('Please allow popups to export the PDF report.');
+    return;
+  }
   w.document.write(html);
   w.document.close();
-  w.focus();
-  setTimeout(() => { w.print(); }, 400);
+  if (typeof w.focus === 'function') w.focus();
+  setTimeout(() => {
+    if (typeof w.print === 'function') w.print();
+  }, 400);
 }
 
 function exportCSV() {
@@ -537,7 +608,75 @@ function refreshAll() {
 }
 
 // ──────────────────────────────────────────────
+//  LOGIN / LOGOUT
+// ──────────────────────────────────────────────
+
+function doLogin() {
+  const pw  = document.getElementById('loginPassword').value.trim();
+  const err = document.getElementById('loginError');
+
+  if (!pw) {
+    err.textContent = 'Please enter the passkey.';
+    err.style.display = 'block';
+    return;
+  }
+
+  if (pw === PASSKEY) {
+    sessionStorage.setItem('ps_auth', '1');
+    err.style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appLayout').style.display = 'flex';
+    refreshAll();
+  } else {
+    err.textContent = 'Invalid passkey. Contact Ankur for access.';
+    err.style.display = 'block';
+    const pwInput = document.getElementById('loginPassword');
+    if (pwInput) {
+      pwInput.value = '';
+      if (typeof pwInput.focus === 'function') pwInput.focus();
+    }
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('ps_auth');
+  document.getElementById('appLayout').style.display = 'none';
+  document.getElementById('loginScreen').style.display = '';
+  const pwInput = document.getElementById('loginPassword');
+  if (pwInput) pwInput.value = '';
+  const err = document.getElementById('loginError');
+  if (err) err.style.display = 'none';
+}
+
+// Enter key to login
+const loginInputEl = document.getElementById('loginPassword');
+if (loginInputEl) {
+  loginInputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+}
+
+// ──────────────────────────────────────────────
 //  INIT
 // ──────────────────────────────────────────────
 
-renderDash();
+// Auto-login if session exists
+if (sessionStorage.getItem('ps_auth') === '1') {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appLayout').style.display = 'flex';
+}
+
+// Start data layer
+if (useFirebase) {
+  db.collection('orders').orderBy('receivedAt', 'desc')
+    .onSnapshot(snap => {
+      orders = snap.docs.map(d => d.data());
+      syncCounter();
+      refreshAll();
+    }, err => {
+      console.error('Firestore listener error:', err);
+      toast('Database Error', err.message, '#dc2626');
+    });
+} else {
+  renderDash();
+}
